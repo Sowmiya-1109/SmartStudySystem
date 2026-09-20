@@ -22,9 +22,6 @@ CREATE TABLE IF NOT EXISTS notes (
 )
 """)
 
-cursor.execute("""
-ALTER TABLE notes ADD COLUMN note_type TEXT
-""")
 
 connection.commit()
 connection.close()
