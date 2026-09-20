@@ -1,6 +1,7 @@
 from flask import Flask, render_template,request, redirect
 import sqlite3
 import re
+import database
 
 app = Flask(__name__)
 
@@ -200,3 +201,7 @@ def edit_note(note_id):
 
 if __name__ == "__main__":
     app.run(debug=True)
+   
+
+        
+   
