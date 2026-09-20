@@ -49,7 +49,7 @@ def register():
                 "study_material.db",
                 timeout=30
             )
-             connection.execute("PRAGMA busy_timeout = 30000")
+            connection.execute("PRAGMA busy_timeout = 30000")    
 
             cursor = connection.cursor()
 
