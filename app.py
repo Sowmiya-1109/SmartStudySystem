@@ -47,7 +47,7 @@ def register():
         else:
             connection = sqlite3.connect(
                 "study_material.db",
-                timeout=10
+                timeout=30
             )
 
             cursor = connection.cursor()
