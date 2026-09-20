@@ -135,7 +135,7 @@ def notes():
         ])
 
     if subject:
-        query += " AND subject = ?"
+        query += " AND TRIM(subject) = TRIM(?)" 
         values.append(subject)
 
     cursor.execute(query, values)
