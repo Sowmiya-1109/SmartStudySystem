@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Notes - Smart Study</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <header class="header">
+
+        <div class="logo">
+            Smart Study
+        </div>
+
+        <nav class="nav">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/add-note">Add Note</a>
+            <a href="/login">Logout</a>
+        </nav>
+
+    </header>
+
+
+    <div class="form-container">
+
+        <h2>My Study Notes</h2>
+
+
+        <!-- Subject Filter -->
+
+        <form method="GET" action="/notes">
+
+            <select name="subject">
+
+                <option value="">All Subjects</option>
+
+                <option value="Python"
+                {% if subject == "Python" %}selected{% endif %}>
+                    Python
+                </option>
+
+                <option value="Java"
+                {% if subject == "Java" %}selected{% endif %}>
+                    Java
+                </option>
+
+                <option value="DBMS"
+                {% if subject == "DBMS" %}selected{% endif %}>
+                    DBMS
+                </option>
+
+                <option value="Artificial Intelligence"
+                {% if subject == "Artificial Intelligence" %}selected{% endif %}>
+                    Artificial Intelligence
+                </option>
+
+                <option value="Computer Networks"
+                {% if subject == "Computer Networks" %}selected{% endif %}>
+                    Computer Networks
+                </option>
+
+                <option value="PHP"
+                {% if subject == "PHP" %}selected{% endif %}>
+                    PHP
+                </option>
+
+            </select>
+
+            <button type="submit">
+                Filter
+            </button>
+
+        </form>
+
+
+        <!-- Display Notes -->
+
+        {% for note in notes %}
+
+        <div class="note-card">
+
+            <h3>{{ note[2] }}</h3>
+
+            <p>
+                <strong>Subject:</strong>
+                {{ note[1] }}
+            </p>
+
+            <p>
+                <strong>Type:</strong>
+                {{ note[4] }}
+            </p>
+
+            <p>
+                <strong>Note Content:</strong>
+            </p>
+
+            <p>
+                {{ note[3] }}
+            </p>
+
+            <a href="/delete-note/{{ note[0] }}">
+                <button>
+                    Delete
+                </button>
+            </a>
+
+            <a href="/edit-note/{{ note[0] }}">
+                <button>
+                    Edit
+                </button>
+            </a>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Smart Study</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <header class="header">
+
+        <div class="logo">
+            Smart Study
+        </div>
+
+        <nav class="nav">
+    <a href="/">Home</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="/notes">My Notes</a>
+    <a href="/add-note">Add Note</a>
+    <a href="/">Logout</a>
+</nav>
+
+    </header>
+
+
+    <section class="dashboard">
+
+        <div class="welcome-section">
+
+            <h1>Welcome to Smart Study</h1>
+
+            <p>
+                Manage and organize your study notes easily in one place.
+            </p>
+
+        </div>
+
+
+        <div class="action-section">
+
+            <div class="dashboard-card">
+
+                <h2>📚 Add New Note</h2>
+
+                <p>
+                    Create and save new study notes with subject,
+                    note type, title and content.
+                </p>
+
+                <a href="/add-note" class="button">
+                    Add Note
+                </a>
+
+            </div>
+
+
+            <div class="dashboard-card">
+
+                <h2>📖 My Study Notes</h2>
+
+                <p>
+                    View, edit, delete and filter your saved
+                    study notes by subject.
+                </p>
+
+                <a href="/notes" class="button">
+                    View Notes
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="info-section">
+
+            <h2>Study Notes Management</h2>
+
+            <p>
+                Smart Study helps students organize their academic
+                notes and access them whenever needed.
+            </p>
+
+        </div>
+
+    </section>
+
+</body>
+</html>

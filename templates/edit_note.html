@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Note - Smart Study</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <header class="header">
+
+        <div class="logo">
+            Smart Study
+        </div>
+
+        <nav class="nav">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/notes">View Notes</a>
+        </nav>
+
+    </header>
+
+    <div class="form-container">
+
+        <h2>Edit Study Note</h2>
+
+        <form method="POST">
+
+            <label>Subject</label>
+            <select name="subject" required>
+
+                <option value="">Select Subject</option>
+
+                <option value="Python"
+                {% if note[1] == "Python" %}selected{% endif %}>
+                Python
+                </option>
+
+                <option value="Java"
+                {% if note[1] == "Java" %}selected{% endif %}>
+                Java
+                </option>
+
+                <option value="DBMS"
+                {% if note[1] == "DBMS" %}selected{% endif %}>
+                DBMS
+                </option>
+
+                <option value="Artificial Intelligence"
+                {% if note[1] == "Artificial Intelligence" %}selected{% endif %}>
+                Artificial Intelligence
+                </option>
+
+                <option value="Computer Networks"
+                {% if note[1] == "Computer Networks" %}selected{% endif %}>
+                Computer Networks
+                </option>
+
+                <option value="PHP"
+                {% if note[1] == "PHP" %}selected{% endif %}>
+                PHP
+                </option>
+
+            </select>
+
+
+            <label>Note Type</label>
+            <select name="note_type" required>
+
+                <option value="">Select Note Type</option>
+
+                <option value="Class Notes"
+                {% if note[4] == "Class Notes" %}selected{% endif %}>
+                Class Notes
+                </option>
+
+                <option value="Study Material"
+                {% if note[4] == "Study Material" %}selected{% endif %}>
+                Study Material
+                </option>
+
+                <option value="Important Questions"
+                {% if note[4] == "Important Questions" %}selected{% endif %}>
+                Important Questions
+                </option>
+
+                <option value="Assignment"
+                {% if note[4] == "Assignment" %}selected{% endif %}>
+                Assignment
+                </option>
+
+                <option value="Revision Notes"
+                {% if note[4] == "Revision Notes" %}selected{% endif %}>
+                Revision Notes
+                </option>
+
+            </select>
+
+
+            <label>Title</label>
+
+            <input type="text"
+                   name="title"
+                   value="{{ note[2] }}"
+                   required>
+
+
+            <label>Note Content</label>
+
+            <textarea name="content"
+                      rows="8"
+                      required>{{ note[3] }}</textarea>
+
+
+            <button type="submit">
+                Update Note
+            </button>
+
+        </form>
+
+    </div>
+
+</body>
+</html>
