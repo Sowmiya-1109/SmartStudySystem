@@ -1,10 +1,16 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 import psycopg2
 import os
 import re
 import database
 
 app = Flask(__name__)
+
+
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "smart-study-secret-key"
+)
 
 
 def get_connection():
@@ -20,6 +26,11 @@ def home():
 
 @app.route("/dashboard")
 def dashboard():
+
+   
+    if "user_id" not in session:
+        return redirect("/login")
+
     return render_template("dashboard.html")
 
 
@@ -41,7 +52,10 @@ def register():
         elif not email:
             error = "Email should not be empty."
 
-        elif not re.match(r"^[A-Za-z0-9._%+-]+@gmail\.com$", email):
+        elif not re.match(
+            r"^[A-Za-z0-9._%+-]+@gmail\.com$",
+            email
+        ):
             error = "Please enter a valid Gmail address."
 
         elif not password:
@@ -54,15 +68,37 @@ def register():
             error = "Passwords do not match."
 
         else:
+
             connection = get_connection()
             cursor = connection.cursor()
 
-            cursor.execute(
-                "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
-                (username, email, password)
-            )
+            try:
 
-            connection.commit()
+                cursor.execute(
+                    """
+                    INSERT INTO users
+                    (username, email, password)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (username, email, password)
+                )
+
+                connection.commit()
+
+            except psycopg2.errors.UniqueViolation:
+
+                connection.rollback()
+
+                error = "Email already registered."
+
+                cursor.close()
+                connection.close()
+
+                return render_template(
+                    "register.html",
+                    error=error
+                )
+
             cursor.close()
             connection.close()
 
@@ -86,7 +122,12 @@ def login():
         cursor = connection.cursor()
 
         cursor.execute(
-            "SELECT * FROM users WHERE email = %s AND password = %s",
+            """
+            SELECT id, username, email
+            FROM users
+            WHERE email = %s
+            AND password = %s
+            """,
             (email, password)
         )
 
@@ -96,15 +137,36 @@ def login():
         connection.close()
 
         if user:
-            return render_template("dashboard.html")
+
+           
+            session["user_id"] = user[0]
+            session["username"] = user[1]
+            session["email"] = user[2]
+
+            return redirect("/dashboard")
+
         else:
+
             return "Invalid email or password!"
 
     return render_template("login.html")
 
 
+@app.route("/logout")
+def logout():
+
+    
+    session.clear()
+
+    return redirect("/login")
+
+
 @app.route("/add-note", methods=["GET", "POST"])
 def add_note():
+
+    
+    if "user_id" not in session:
+        return redirect("/login")
 
     if request.method == "POST":
 
@@ -113,19 +175,29 @@ def add_note():
         title = request.form["title"]
         content = request.form["content"]
 
+       
+        user_id = session["user_id"]
+
         connection = get_connection()
         cursor = connection.cursor()
 
         cursor.execute(
             """
             INSERT INTO notes
-            (subject, note_type, title, content)
-            VALUES (%s, %s, %s, %s)
+            (user_id, subject, note_type, title, content)
+            VALUES (%s, %s, %s, %s, %s)
             """,
-            (subject, note_type, title, content)
+            (
+                user_id,
+                subject,
+                note_type,
+                title,
+                content
+            )
         )
 
         connection.commit()
+
         cursor.close()
         connection.close()
 
@@ -137,25 +209,52 @@ def add_note():
 @app.route("/notes")
 def notes():
 
+   
+    if "user_id" not in session:
+        return redirect("/login")
+
     search = request.args.get("search", "")
     subject = request.args.get("subject", "")
+
+   
+    user_id = session["user_id"]
 
     connection = get_connection()
     cursor = connection.cursor()
 
-    query = "SELECT * FROM notes WHERE 1=1"
-    values = []
+   
+    query = """
+        SELECT id, subject, note_type, title, content
+        FROM notes
+        WHERE user_id = %s
+    """
+
+    values = [user_id]
 
     if search:
-        query += " AND (title LIKE %s OR content LIKE %s)"
+
+        query += """
+            AND (
+                title ILIKE %s
+                OR content ILIKE %s
+            )
+        """
+
         values.extend([
             "%" + search + "%",
             "%" + search + "%"
         ])
 
     if subject:
-        query += " AND LOWER(TRIM(subject)) = LOWER(TRIM(%s))"
+
+        query += """
+            AND LOWER(TRIM(subject))
+            = LOWER(TRIM(%s))
+        """
+
         values.append(subject)
+
+    query += " ORDER BY id DESC"
 
     cursor.execute(query, values)
 
@@ -175,23 +274,44 @@ def notes():
 @app.route("/delete-note/<int:note_id>")
 def delete_note(note_id):
 
+    
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
     connection = get_connection()
     cursor = connection.cursor()
 
+    
     cursor.execute(
-        "DELETE FROM notes WHERE id = %s",
-        (note_id,)
+        """
+        DELETE FROM notes
+        WHERE id = %s
+        AND user_id = %s
+        """,
+        (note_id, user_id)
     )
 
     connection.commit()
+
     cursor.close()
     connection.close()
 
     return redirect("/notes")
 
 
-@app.route("/edit-note/<int:note_id>", methods=["GET", "POST"])
+@app.route(
+    "/edit-note/<int:note_id>",
+    methods=["GET", "POST"]
+)
 def edit_note(note_id):
+
+    
+    if "user_id" not in session:
+        return redirect("/login")
+
+    user_id = session["user_id"]
 
     connection = get_connection()
     cursor = connection.cursor()
@@ -203,6 +323,7 @@ def edit_note(note_id):
         title = request.form["title"]
         content = request.form["content"]
 
+        
         cursor.execute(
             """
             UPDATE notes
@@ -211,19 +332,34 @@ def edit_note(note_id):
                 title = %s,
                 content = %s
             WHERE id = %s
+            AND user_id = %s
             """,
-            (subject, note_type, title, content, note_id)
+            (
+                subject,
+                note_type,
+                title,
+                content,
+                note_id,
+                user_id
+            )
         )
 
         connection.commit()
+
         cursor.close()
         connection.close()
 
         return redirect("/notes")
 
+   
     cursor.execute(
-        "SELECT * FROM notes WHERE id = %s",
-        (note_id,)
+        """
+        SELECT id, subject, note_type, title, content
+        FROM notes
+        WHERE id = %s
+        AND user_id = %s
+        """,
+        (note_id, user_id)
     )
 
     note = cursor.fetchone()
@@ -231,8 +367,16 @@ def edit_note(note_id):
     cursor.close()
     connection.close()
 
-    return render_template("edit_note.html", note=note)
+    
+    if note is None:
+        return "Note not found or you do not have permission to access it."
+
+    return render_template(
+        "edit_note.html",
+        note=note
+    )
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+            
