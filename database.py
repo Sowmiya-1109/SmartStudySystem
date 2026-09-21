@@ -1,8 +1,14 @@
 import os
 import psycopg2
 
-connection = psycopg2.connect(os.environ["DATABASE_URL"])
+
+connection = psycopg2.connect(
+    os.environ["DATABASE_URL"]
+)
+
 cursor = connection.cursor()
+
+
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
@@ -12,6 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL
 )
 """)
+
+
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS notes (
@@ -23,8 +31,42 @@ CREATE TABLE IF NOT EXISTS notes (
 )
 """)
 
+
+
+cursor.execute("""
+ALTER TABLE notes
+ADD COLUMN IF NOT EXISTS user_id INTEGER
+""")
+
+
+
+
+cursor.execute("""
+DO $$
+BEGIN
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'notes_user_id_fkey'
+    ) THEN
+
+        ALTER TABLE notes
+        ADD CONSTRAINT notes_user_id_fkey
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE;
+
+    END IF;
+
+END
+$$
+""")
+
+
 connection.commit()
+
 cursor.close()
 connection.close()
 
-print("PostgreSQL database and tables created successfully!")
+print("PostgreSQL database and tables created/updated successfully!")
